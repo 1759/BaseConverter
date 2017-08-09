@@ -379,9 +379,15 @@ CString CBaseConverterDlg::HexToBin(CString no) {
 CString CBaseConverterDlg::DezToHex(CString no) {
 	CString aux = NULL;
 	for (int i = 0; i < no.GetLength(); i++)
-		if (!(no.GetAt(i) <= '9' && no.GetAt(i) >= '0'))
-			return HexToHex(_T("FFFF FFFF"));;
-
+	{
+		if (no.GetAt(i) == '-') {
+			no = DezToDezUnsigned(no);
+			
+		}
+		else
+			if (!(no.GetAt(i) <= '9' && no.GetAt(i) >= '0'))
+				return HexToHex(_T("FFFF FFFF"));;
+	}
 	wchar_t *end = NULL;
 	uint64_t value = _wcstoui64(no, &end, 10);
 	std::stringstream ss;
@@ -400,12 +406,8 @@ CString CBaseConverterDlg::DezToHex(CString no) {
 }
 
 CString CBaseConverterDlg::DezToDezUnsigned(CString no) {
-	for (int i = 0; i < no.GetLength(); i++) {
-		if (no.GetAt(i) == '-')
-			return HexToDezUnsigned(_T("FFFF FFFF"));
-		else if (!(no.GetAt(i) <= '9' && no.GetAt(i) >= '0'))
-			return _T("0");
-	}		
+	//get the first part before a 
+
 	wchar_t *end = NULL;
 	uint64_t value = _wcstoui64(no, &end, 10);
 
@@ -413,6 +415,17 @@ CString CBaseConverterDlg::DezToDezUnsigned(CString no) {
 	ss << std::hex << value;
 	ss >> value;
 	no.Format(_T("%lu"), value);
+
+	for (int i = 0; i < no.GetLength(); i++) {
+		if (no.GetAt(i) == '-') {
+			value = 4294967296 -  value;
+			no.Format(_T("%lu"), value);
+		}
+
+		else if (!(no.GetAt(i) <= '9' && no.GetAt(i) >= '0'))
+			return _T("0");
+	}		
+	
 
 	/*
 	if (value > 4294967295 && value <= 8589934591) {
@@ -451,10 +464,19 @@ CString CBaseConverterDlg::DezToDezSigned(CString no) {
 }
 
 CString CBaseConverterDlg::DezToBin(CString no) {
-	for (int i = 0; i < no.GetLength(); i++)
-		if (!(no.GetAt(i) <= '9' && no.GetAt(i) >= '0'))
-			return _T("0000 0000 0000 0000 0000 0000 0000 0000");
+	for (int i = 0; i < no.GetLength(); i++) {
 
+		if (no.GetAt(i) == '-') {
+			no = DezToDezUnsigned(no);
+			no = DezToHex(no);
+			no = HexToBin(no);
+			return no;
+			//oricum trebuiaa sa trunchiez la al doilea minus sa ignor ce e dupa d
+
+		}
+		else	if (!(no.GetAt(i) <= '9' && no.GetAt(i) >= '0'))
+			return _T("0000 0000 0000 0000 0000 0000 0000 0000");
+	}
 	wchar_t *end = NULL;
 	uint64_t value = _wcstoui64(no, &end, 10);
 

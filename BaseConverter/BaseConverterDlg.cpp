@@ -2,7 +2,6 @@
 // BaseConverterDlg.cpp : implementation file
 //
 
-
 #include "stdafx.h"
 #include "BaseConverter.h"
 #include "BaseConverterDlg.h"
@@ -267,6 +266,18 @@ CString CBaseConverterDlg::CleanBadCharcaters(CString no) {
 	return aux;
 }
 
+CString CBaseConverterDlg::CutDezAtFirstSpecialChar(CString no) {
+	CString result = NULL;
+	for (int i = 0; i < no.GetLength(); i++) {
+		if ((no.GetAt(i) <= '9' && no.GetAt(i) >= '0') || (no.GetAt(i) == '-' && i == 0))
+			result += no.GetAt(i);
+		else break;
+	}
+
+	return result;
+
+}
+
 CString CBaseConverterDlg::HexToHex(CString no) {
 	CString s = NULL;
 	no = CleanSpaces(no);
@@ -352,19 +363,20 @@ const char* hex_char_to_bin(char c)
 }
 
 CString CBaseConverterDlg::HexToBin(CString no) {
-	CString s = NULL;
+	CString s, t = NULL;
+	s += "";
 	no = CleanSpaces(no);
-	int i = 0;
-	for (int j = 0; j < 8 && i < no.GetLength(); i++) {
+	int i = no.GetLength() - 1;
+	for (int j = 0; j < 8 && i >= 0; i--) {
 		if (!((no.GetAt(i) >= 'a' && no.GetAt(i) <= 'f') || (no.GetAt(i) >= 'A' && no.GetAt(i) <= 'F') || (no.GetAt(i) <= '9' && no.GetAt(i) >= '0')))
 			return HexToBin(_T("FFFF FFFF"));
 		else
 		{
-			s += hex_char_to_bin(no.GetAt(i));
+			t = hex_char_to_bin(no.GetAt(i));
+			s.Insert(0, t);
 			j++;
 		}
 	}
-
 
 	s.MakeReverse();
 	for (int i = s.GetLength()+1; i <= 32; i++) {
@@ -378,11 +390,12 @@ CString CBaseConverterDlg::HexToBin(CString no) {
 
 CString CBaseConverterDlg::DezToHex(CString no) {
 	CString aux = NULL;
+	no = CutDezAtFirstSpecialChar(no);
+
 	for (int i = 0; i < no.GetLength(); i++)
 	{
 		if (no.GetAt(i) == '-') {
 			no = DezToDezUnsigned(no);
-			
 		}
 		else
 			if (!(no.GetAt(i) <= '9' && no.GetAt(i) >= '0'))
@@ -447,6 +460,7 @@ CString CBaseConverterDlg::DezToDezUnsigned(CString no) {
 }
 
 CString CBaseConverterDlg::DezToDezSigned(CString no) {
+	no = CutDezAtFirstSpecialChar(no);
 	bool neg= false;
 	for (int i = 0; i < no.GetLength(); i++) {
 		 if (!(no.GetAt(i) <= '9' && no.GetAt(i) >= '0') && no.GetAt(i)!= '-')
@@ -464,6 +478,7 @@ CString CBaseConverterDlg::DezToDezSigned(CString no) {
 }
 
 CString CBaseConverterDlg::DezToBin(CString no) {
+	no = CutDezAtFirstSpecialChar(no);
 	for (int i = 0; i < no.GetLength(); i++) {
 
 		if (no.GetAt(i) == '-') {
@@ -508,7 +523,8 @@ CString CBaseConverterDlg::BinToHex(CString no) {
 	CString tmp, chr("0000");
 	int len = no.GetLength() / 4;
 	chr = chr.Mid(0, len);
-	for (int i = 0; i<no.GetLength(); i += 4)
+	int j = 0;
+	for (int i = 0; i<no.GetLength(); i += 4, j++)
 	{
 		tmp = no.Mid(i, 4);
 		if (!tmp.Compare(_T("0000")))
@@ -579,6 +595,8 @@ CString CBaseConverterDlg::BinToHex(CString no) {
 		{
 			continue;
 		}
+		if(j%4==3)
+		rest += " ";
 	}
 
 	return rest;

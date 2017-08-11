@@ -55,6 +55,8 @@ public:
 
 	CString CleanBadCharcaters(CString no);
 
+	CString CutDezAtFirstSpecialChar(CString no);
+
 	CString HexToHex(CString no);
 	CString HexToDezUnsigned(CString no);
 	CString HexToDezSigned(CString no);
